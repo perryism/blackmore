@@ -1,0 +1,24 @@
+[project]
+name = "blackmore"
+requires-python = "~=3.10"
+readme = "README.md"
+authors = [
+    {name = "Perry Lee", email = "perryism@gmail.com" }
+]
+license = {text = "BSD-3-Clause"}
+dependencies = []
+dynamic = ["version"]
+
+[tool.pytest.ini_options]
+addopts = [
+    "--import-mode=importlib",
+]
+
+[tool.setuptools.dynamic]
+version = {attr = "blackmore.VERSION"}
+
+[tool.setuptools.packages.find]
+exclude = ["tests"]
+
+[project.scripts]
+blackmore = "blackmore.cli:run"
