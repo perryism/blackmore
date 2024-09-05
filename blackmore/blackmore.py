@@ -2,26 +2,38 @@ import argparse
 from enum import EnumMeta
 
 class Blackmore:
-    def __init__(self, name, functions):
+    def __init__(self, name, functions, subcommand=False):
         self.name = name
         self.functions = dict([[f.__name__, f] for f in functions])
+        self.subcommand = subcommand
+
+    @property
+    def __name__(self):
+        return self.name.lower()
 
     def execute(self):
         parser = argparse.ArgumentParser(prog = self.name)
+
+        # TODO: support N subcommands
+        if self.subcommand:
+            parser.add_argument(self.__name__, help="command")
+
         parser.add_argument("cmd", help="command", choices=self.functions.keys())
         args = parser.parse_known_args()
         cmd_name = args[0].cmd
         function = self.functions[cmd_name]
-        args = self.get_args(parser, function)
+        if isinstance(function, Blackmore):
+            return function.execute()
+        else:
+            args = self.get_args(parser, function)
+            params = {}
+            for k, v in function.__annotations__.items():
+                if isinstance(v, EnumMeta):
+                    params[k] = getattr(v, getattr(args, k))
+                else:
+                    params[k] = getattr(args, k)
 
-        params = {}
-        for k, v in function.__annotations__.items():
-            if isinstance(v, EnumMeta):
-                params[k] = getattr(v, getattr(args, k))
-            else:
-                params[k] = getattr(args, k)
-
-        return function(*params.values())
+            return function(*params.values())
 
     def get_args(self, parser, function):
         for k, v in function.__annotations__.items():

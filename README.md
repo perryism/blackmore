@@ -26,3 +26,24 @@ blackmore.execute()
 <pre>
 blackmore add 3 26
 </pre>
+
+
+## Nested commands
+
+<pre>
+
+def ls(path: str):
+    print(os.listdir(path))
+
+def cat(file_name: str):
+    with open(file_name) as f:
+        print(f.read())
+
+math = Blackmore("Math", [add, calculate])
+utils = Blackmore("Utils", [ls, cat])
+
+blackmore = Blackmore("Perry", [math, utils])
+
+blackmore.execute()
+
+</pre>
