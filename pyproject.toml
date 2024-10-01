@@ -1,6 +1,6 @@
 [project]
 name = "blackmore"
-requires-python = "~=3.10"
+requires-python = "~=3.9"
 readme = "README.md"
 authors = [
     {name = "Perry Lee", email = "perryism@gmail.com" }
