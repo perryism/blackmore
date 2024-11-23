@@ -19,12 +19,19 @@ class Blackmore:
             if isinstance(v, EnumMeta):
                 params[k] = getattr(v, getattr(args, k))
             else:
+                if hasattr(v, "__metadata__"):
+                    if callable(v.__metadata__[0]):
+                        params[k] = v.__metadata__[0]()
+                        continue
+
                 params[k] = getattr(args, k)
 
         return function(*params.values())
 
     def get_args(self, parser, function):
         for k, v in function.__annotations__.items():
+            if hasattr(v, "__metadata__"):
+               continue
             if v is str or v is int or v is float:
                 parser.add_argument(k, type=v, help=k)
             elif isinstance(v, EnumMeta):
