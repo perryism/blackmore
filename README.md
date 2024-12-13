@@ -43,3 +43,21 @@ blackmore.execute()
 <pre>
 cat pyproject.toml | blackmore to_json
 </pre>
+
+# Complex type
+
+<pre>
+from datetime import date
+from typing import Annotated
+@parser(date_str=lambda s: date.fromisoformat(s))
+def to_datetime(date_str: Annotated[date, "%Y-%m-%d"]):
+    print(date_str)
+    assert type(date_str) == date
+
+blackmore = Blackmore("Perry", [to_datetime])
+blackmore.execute()
+</pre>
+
+<pre>
+python test.py to_datetime '2022-11-11'
+</pre>
