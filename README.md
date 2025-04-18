@@ -47,12 +47,15 @@ cat pyproject.toml | blackmore to_json
 # Complex type
 
 <pre>
-from datetime import date
-from typing import Annotated
+
+from blackmore import parser
+from datetime import date, timedelta
+from typing import Annotated, Optional
+
 @parser(date_str=lambda s: date.fromisoformat(s))
-def to_datetime(date_str: Annotated[date, "%Y-%m-%d"]):
-    print(date_str)
-    assert type(date_str) == date
+def to_datetime(date_obj: Annotated[date, "%Y-%m-%d"], plusdays: Optional[int]):
+    print(date_obj + timedelta(days=plusdays or 0))
+    assert type(date_obj) == date
 
 blackmore = Blackmore("Perry", [to_datetime])
 blackmore.execute()
