@@ -1,5 +1,6 @@
 import argparse
 from enum import EnumMeta
+import typing
 
 class Blackmore:
     def __init__(self, name, functions):
@@ -36,6 +37,9 @@ class Blackmore:
                 parser.add_argument(k, type=v, help=f"{k}")
             elif isinstance(v, EnumMeta):
                 parser.add_argument(k, help=k, choices=v.__members__.keys())
+            elif typing.get_origin(v) is typing.Union:
+                if type(None) in typing.get_args(v):
+                    parser.add_argument(k, type=v.__args__[0], nargs="?", help=f"{k}")
             else:
                 raise TypeError(f"{v} is not supported")
 
