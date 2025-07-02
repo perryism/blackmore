@@ -1,5 +1,7 @@
 import argparse
+import asyncio
 from enum import EnumMeta
+import inspect
 import typing
 
 class Blackmore:
@@ -27,7 +29,10 @@ class Blackmore:
 
                 params[k] = getattr(args, k)
 
-        return function(**params)#.values())
+        if inspect.iscoroutinefunction(function):
+            return asyncio.run(function(**params))
+
+        return function(**params)
 
     def get_args(self, parser, function):
         for k, v in function.__annotations__.items():
@@ -52,10 +57,18 @@ def parser(**kwargs):
         f.__original_annotations__ = f.__annotations__.copy()
         for k, v in kwargs.items():
             f.__annotations__[k] = str
-        @wraps(f)
-        def wrapper(*args, **kwargs2):
-            for k, v in kwargs.items():
-                kwargs2[k] = kwargs[k](kwargs2[k])
-            return f(*args, **kwargs2)
+
+        if inspect.iscoroutinefunction(f):
+            @wraps(f)
+            async def wrapper(*args, **kwargs2):
+                for k, v in kwargs.items():
+                    kwargs2[k] = kwargs[k](kwargs2[k])
+                return await f(*args, **kwargs2)
+        else:
+            @wraps(f)
+            def wrapper(*args, **kwargs2):
+                for k, v in kwargs.items():
+                    kwargs2[k] = kwargs[k](kwargs2[k])
+                return f(*args, **kwargs2)
         return wrapper
     return decorator
