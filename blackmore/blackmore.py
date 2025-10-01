@@ -5,29 +5,46 @@ import typing
 class Blackmore:
     def __init__(self, name, functions):
         self.name = name
-        self.functions = dict([[f.__name__, f] for f in functions])
+        self.functions = dict([[f.__name__, f] for f in functions if not isinstance(f, Blackmore)])
+        self.subcommands = dict([[f.__name__, f] for f in functions if isinstance(f, Blackmore)])
+        # self.subcommand = subcommand
 
-    def execute(self):
-        parser = argparse.ArgumentParser(prog = self.name)
-        parser.add_argument("cmd", help="command", choices=self.functions.keys())
-        args = parser.parse_known_args()
-        cmd_name = args[0].cmd
+    @property
+    def __name__(self):
+        return self.name.lower()
+
+    def execute(self, cmd_name = None,parser = None):
+        if parser is None:
+            parser = argparse.ArgumentParser(prog = self.name)
+            parser.add_argument("cmd", help="command", choices=list(self.functions.keys()) + list(self.subcommands.keys()))
+            args = parser.parse_known_args()
+            cmd_name = args[0].cmd
+        else:
+            parser.add_argument(cmd_name, help="subcommand", choices=self.functions.keys())
+            args = parser.parse_known_args()
+            cmd_name = getattr(args[0], cmd_name)
+
+        if cmd_name in self.subcommands:
+            # parser.add_argument("subcommand", help="subcommand", choices=self.functions.keys())
+            return self.subcommands[cmd_name].execute(cmd_name, parser)
         function = self.functions[cmd_name]
-        args = self.get_args(parser, function)
-
-        params = {}
-        for k, v in function.__annotations__.items():
-            if isinstance(v, EnumMeta):
-                params[k] = getattr(v, getattr(args, k))
-            else:
-                if hasattr(v, "__metadata__"):
-                    if callable(v.__metadata__[0]):
-                        params[k] = v.__metadata__[0]()
-                        continue
+        if isinstance(function, Blackmore):
+            return function.execute()
+        else:
+            args = self.get_args(parser, function)
+            params = {}
+            for k, v in function.__annotations__.items():
+                if isinstance(v, EnumMeta):
+                    params[k] = getattr(v, getattr(args, k))
+                else:
+                    if hasattr(v, "__metadata__"):
+                        if callable(v.__metadata__[0]):
+                            params[k] = v.__metadata__[0]()
+                            continue
 
                 params[k] = getattr(args, k)
 
-        return function(**params)#.values())
+            return function(*params.values())
 
     def get_args(self, parser, function):
         for k, v in function.__annotations__.items():
