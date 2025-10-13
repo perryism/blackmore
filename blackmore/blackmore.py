@@ -1,6 +1,7 @@
 import argparse
 from enum import EnumMeta
 import typing
+import inspect
 
 class Blackmore:
     def __init__(self, name, functions):
@@ -47,18 +48,24 @@ class Blackmore:
             return function(*params.values())
 
     def get_args(self, parser, function):
-        for k, v in function.__annotations__.items():
-            if hasattr(v, "__metadata__"):
+        signature = inspect.signature(function)
+
+        for k, v in signature.parameters.items():
+            annotation : inspect.Parameter = v.annotation
+            if hasattr(annotation, "__metadata__"):
                continue
-            if v is str or v is int or v is float:
-                parser.add_argument(k, type=v, help=f"{k}")
+            if annotation in [str, int, float]:
+                if v.default is not inspect.Parameter.empty:
+                    parser.add_argument(k, type=annotation, help=f"{k}", nargs='?', default=v.default)
+                else:
+                    parser.add_argument(k, type=annotation, help=f"{k}")
             elif isinstance(v, EnumMeta):
                 parser.add_argument(k, help=k, choices=v.__members__.keys())
             elif typing.get_origin(v) is typing.Union:
                 if type(None) in typing.get_args(v):
-                    parser.add_argument(k, type=v.__args__[0], nargs="?", help=f"{k}")
+                    parser.add_argument(k, type=annotation.__args__[0], nargs="?", help=f"{k}")
             else:
-                raise TypeError(f"{v} is not supported")
+                raise TypeError(f"{annotation} is not supported")
 
         return parser.parse_args()
 
