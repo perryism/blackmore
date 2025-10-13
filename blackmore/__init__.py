@@ -1,4 +1,4 @@
-VERSION="0.3.0"
+VERSION="0.4.0"
 
 from .blackmore import Blackmore
 from .blackmore import parser
