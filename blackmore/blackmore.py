@@ -21,7 +21,7 @@ class Blackmore:
             args = parser.parse_known_args()
             cmd_name = args[0].cmd
         else:
-            parser.add_argument(cmd_name, help="subcommand", choices=self.functions.keys())
+            parser.add_argument(cmd_name, help="subcommand", choices=list(self.functions.keys()) + list(self.subcommands.keys()))
             args = parser.parse_known_args()
             cmd_name = getattr(args[0], cmd_name)
 
@@ -54,13 +54,14 @@ class Blackmore:
             annotation : inspect.Parameter = v.annotation
             if hasattr(annotation, "__metadata__"):
                continue
+
             if annotation in [str, int, float]:
                 if v.default is not inspect.Parameter.empty:
                     parser.add_argument(k, type=annotation, help=f"{k}", nargs='?', default=v.default)
                 else:
                     parser.add_argument(k, type=annotation, help=f"{k}")
-            elif isinstance(v, EnumMeta):
-                parser.add_argument(k, help=k, choices=v.__members__.keys())
+            elif isinstance(v.annotation, EnumMeta):
+                parser.add_argument(k, help=k, choices=v.annotation.__members__.keys())
             elif typing.get_origin(v) is typing.Union:
                 if type(None) in typing.get_args(v):
                     parser.add_argument(k, type=annotation.__args__[0], nargs="?", help=f"{k}")
