@@ -2,6 +2,7 @@ import argparse
 from enum import EnumMeta
 import typing
 import inspect
+import asyncio
 
 class Blackmore:
     def __init__(self, name, functions):
@@ -45,6 +46,9 @@ class Blackmore:
 
                 params[k] = getattr(args, k)
 
+            # check if function is async
+            if inspect.iscoroutinefunction(function):
+                return asyncio.run(function(*params.values()))
             return function(*params.values())
 
     def get_args(self, parser, function):
