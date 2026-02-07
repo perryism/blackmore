@@ -59,9 +59,9 @@ class Blackmore:
             if hasattr(annotation, "__metadata__"):
                continue
 
-            if annotation in [str, int, float]:
+            if annotation in [str, int, float, bool]:
                 if v.default is not inspect.Parameter.empty:
-                    parser.add_argument(k, type=annotation, help=f"{k}", nargs='?', default=v.default)
+                    parser.add_argument(f"--{k}", type=annotation, help=f"{k}", nargs='?', default=v.default)
                 else:
                     parser.add_argument(k, type=annotation, help=f"{k}")
             elif isinstance(v.annotation, EnumMeta):
