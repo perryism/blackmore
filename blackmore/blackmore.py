@@ -3,13 +3,33 @@ from enum import EnumMeta
 import typing
 import inspect
 import asyncio
+from typing import Union
+import os
 
 class Blackmore:
-    def __init__(self, name, functions):
+    def __init__(self, name: str, functions: Union["Blackmore", typing.Callable]):
         self.name = name
-        self.functions = dict([[f.__name__, f] for f in functions if not isinstance(f, Blackmore)])
+        self.functions = dict([[f.__name__, f] for f in functions if not isinstance(f, Blackmore) and self._valid_function(f)])
         self.subcommands = dict([[f.__name__, f] for f in functions if isinstance(f, Blackmore)])
-        # self.subcommand = subcommand
+
+    def _valid_function(self, function: typing.Callable):
+        """
+        function has to be annotated
+        """
+        if os.environ.get("BLACKMORE_VALIDATE") == "0":
+            return True
+
+        if not hasattr(function, '__annotations__'):
+            return False
+
+        signature = inspect.signature(function)
+
+        # Check that all parameters have type annotations
+        for param in signature.parameters.values():
+            if param.annotation is inspect.Parameter.empty:
+                return False
+
+        return True
 
     @property
     def __name__(self):
