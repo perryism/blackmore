@@ -1,5 +1,15 @@
 # Overview
-Blackmore allows you to create a command line tool more efficiently
+Blackmore is a Python library that allows developers to create command-line tools more efficiently by automatically converting Python functions into CLI commands. It uses Python type annotations to generate argument parsers and command structures.
+
+## Key Features
+* Function-to-CLI Conversion: Takes regular Python functions with type annotations and automatically creates command-line interfaces for them
+i* Type Safety: Requires functions to have proper type annotations and validates them
+* Nested Commands: Supports hierarchical command structures with subcommands
+* Standard Input Support: Can handle stdin input through special annotations
+* Complex Type Support: Handles enums, optional parameters, and custom type parsers
+* Async Support: Can execute async functions
+
+## Examples
 
 <pre>
 def add(x: int, y: int):
